@@ -1,0 +1,43 @@
+services:
+# PostgreSQL Database Service
+db:
+# Use the official PostgreSQL image from Docker Hub
+    image: postgres:15-alpine 
+    environment:
+    # Set environment variables for PostgreSQL
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: nimc_db
+      # Initialize the database with a custom SQL script
+    volumes:
+      - ./database/db-init.sql:/docker-entrypoint-initdb.d/db-init.sql
+    ports:
+      - "5432:5432"
+      # Expose the default PostgreSQL port
+backend:
+    build: ./backend
+    # Build the backend service from the specified directory
+    environment:
+    # Set environment variables for the backend service
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRESS_DB: nimc_db
+      POSTGRESS_HOST: db
+    ports:
+      - "5000:5000"
+    # Expose the backend service on port 8000
+    depends_on:
+      - db
+    # Ensure the backend service starts after the database service
+frontend:
+    build: ./frontend
+    # Build the frontend service from the specified directory
+    ports:
+      - "4000:3000"
+    # Expose the frontend service on port 3000
+    environment:
+    # Set environment variables for the frontend service
+      REACT_APP_BACKEND_URL: http://backend:5000
+    depends_on:
+      - backend
+    # Ensure the frontend service starts after the backend service
